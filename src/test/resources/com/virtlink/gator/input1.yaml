@@ -1,0 +1,10 @@
+---
+template: template1.st
+instances:
+- output: daniel.txt
+  data:
+    name: Daniel
+- output: world.txt
+  data:
+    name: World
+
