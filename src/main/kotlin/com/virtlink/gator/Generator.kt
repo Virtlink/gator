@@ -25,7 +25,7 @@ class Generator @Inject constructor(
     private val LOG by logger()
 
     fun generate(filename: String) {
-        generate(URI(filename))
+        generate(File(System.getProperty("user.dir"), filename).toURI())
     }
 
     fun generate(filename: URI) {
