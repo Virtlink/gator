@@ -1,13 +1,10 @@
 package com.virtlink.gator
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.ObjectReader
-import com.fasterxml.jackson.databind.type.TypeFactory
 import com.google.inject.Inject
+import com.virtlink.logger
 import org.apache.commons.io.FilenameUtils
 import org.stringtemplate.v4.*
-import org.stringtemplate.v4.misc.STMessage
 import java.io.*
 import java.net.URI
 
@@ -15,15 +12,21 @@ import java.net.URI
  * Generates files based on a data file and a template.
  */
 class Generator @Inject constructor(
-        private val mapper: ObjectMapper
+        private val mapper: ObjectMapper,
+        private val templateErrorListener: TemplateErrorListener
 ) {
+
+    companion object {
+        private const val START_DELIMITER = '$'
+        private const val END_DELIMITER = '$'
+    }
+
+    @Suppress("PrivatePropertyName")
+    private val LOG by logger()
 
     fun generate(filename: String) {
         generate(URI(filename))
-//        val basePath = FilenameUtils.getFullPath(filename)
-//        generate(File(filename).inputStream(), basePath)
     }
-
 
     fun generate(filename: URI) {
         val file = File(filename)
@@ -53,50 +56,32 @@ class Generator @Inject constructor(
             populateTemplate(input, instance, template)
             getWriter(input, instance, basePath).use {
                 val stWriter = getSTWriter(input, instance, it)
-                template.write(stWriter, object : STErrorListener {
-                    override fun compileTimeError(msg: STMessage?) {
-                        System.out.println(msg.toString())
-                    }
-
-                    override fun IOError(msg: STMessage?) {
-                        System.out.println(msg.toString())
-                    }
-
-                    override fun internalError(msg: STMessage?) {
-                        System.out.println(msg.toString())
-                    }
-
-                    override fun runTimeError(msg: STMessage?) {
-                        System.out.println(msg.toString())
-                    }
-
-                })
+                template.write(stWriter, templateErrorListener)
             }
         }
     }
 
-    fun getWriter(input: InputData, instance: InstanceData, basePath: String): Writer {
+    private fun getWriter(input: InputData, instance: InstanceData, basePath: String): Writer {
         val file = File(basePath, instance.output)
         return BufferedWriter(file.writer())
     }
 
-    fun getSTWriter(input: InputData, instance: InstanceData, writer: Writer): STWriter {
-        return when (instance.autoIndent ?: input.autoIndent ?: false) {
+    private fun getSTWriter(input: InputData, instance: InstanceData, writer: Writer): STWriter {
+        return when (instance.autoIndent ?: input.autoIndent == true) {
             true -> AutoIndentWriter(writer)
             false -> NoIndentWriter(writer)
         }
     }
 
-    fun getTemplateGroup(input: InputData, instance: InstanceData?, basePath: String): STGroup {
+    private fun getTemplateGroup(input: InputData, instance: InstanceData?, basePath: String): STGroup {
         val templateGroup = instance?.templateGroup
                 ?: input.templateGroup
                 ?: FilenameUtils.getFullPath(input.template)
         val templateGroupPath = FilenameUtils.concat(basePath, templateGroup)
         val templateGroupFile = File(templateGroupPath)
         return when {
-            // Use STRawGroupDir instead of STGroupDir to allow templates without headers.
-            templateGroupFile.isDirectory -> STRawGroupDir(templateGroupPath,'$', '$')
-            templateGroupFile.isFile -> STGroupFile(templateGroupPath, '$', '$')
+            templateGroupFile.isDirectory -> STGroupDir(templateGroupPath,START_DELIMITER, END_DELIMITER)
+            templateGroupFile.isFile -> STGroupFile(templateGroupPath, START_DELIMITER, END_DELIMITER)
             else -> throw FileNotFoundException("The template group directory or file was not found.")
         }
     }
@@ -107,7 +92,7 @@ class Generator @Inject constructor(
      * Returns a cached copy of the template
      * with all values cleared.
      */
-    fun getTemplate(input: InputData, instance: InstanceData, group: STGroup): ST {
+    private fun getTemplate(input: InputData, instance: InstanceData, group: STGroup): ST {
         val templateName = FilenameUtils.getBaseName(instance.template ?: input.template ?: "template")
 
         return group.getInstanceOf(templateName)
@@ -119,7 +104,7 @@ class Generator @Inject constructor(
      * @param template The template to populate.
      * @param instance The template instance data.
      */
-    fun populateTemplate(input: InputData, instance: InstanceData, template: ST) {
+    private fun populateTemplate(input: InputData, instance: InstanceData, template: ST) {
         instance.data.forEach { k, v ->
             template.add(k, v)
         }

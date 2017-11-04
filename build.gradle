@@ -32,9 +32,10 @@ dependencies {
     compile     "com.google.inject:guice:$guice_version"
     compile     "com.google.inject.extensions:guice-multibindings:$guice_version"
     compile     "com.google.inject.extensions:guice-assistedinject:$guice_version"
-    compile     "org.slf4j:slf4j-api:$slf4j_version"
-    compile     "org.slf4j:slf4j-simple:$slf4j_version"
     compile     "commons-io:commons-io:$commons_io_version"
+    compile     "org.slf4j:slf4j-api:$slf4j_version"
+    compile     "ch.qos.logback:logback-classic:$logback_version"
+    compile     "ch.qos.logback:logback-core:$logback_version"
 
     testCompile "junit:junit:$junit_version"
 }

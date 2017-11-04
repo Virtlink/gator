@@ -1,5 +1,6 @@
 package com.virtlink.gator
 
+import ch.qos.logback.classic.Level
 import com.xenomachina.argparser.ArgParser
 import com.xenomachina.argparser.DefaultHelpFormatter
 
@@ -18,6 +19,28 @@ class Arguments(parser: ArgParser) {
     /**
      * Gets the source filenames.
      */
-    val sources by parser.positionalList("source filenames", 1..Int.MAX_VALUE)
+    val sources by parser.positionalList("SOURCES", help = "filenames of source YAML files", sizeRange = 0..Int.MAX_VALUE)
+
+    /**
+     * Whether to enable verbose mode.
+     * This prints ERRORs, WARNings, and INFOs.
+     */
+    val verbose by parser.flagging("-v", "--verbose", help = "enable verbose mode")
+
+    /**
+     * Whether to enable quiet mode.
+     * This prints only ERRORs.
+     */
+    val quiet by parser.flagging("-q", "--quiet", help = "enable quiet mode")
+
+    /**
+     * Gets the verbosity level.
+     */
+    val verbosityLevel: Level
+        get() = when {
+            this.quiet -> Level.ERROR
+            this.verbose -> Level.INFO
+            else -> Level.WARN
+        }
 
 }

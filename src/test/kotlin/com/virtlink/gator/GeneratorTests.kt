@@ -18,7 +18,7 @@ class GeneratorTests {
 //                "- name: Daniel\n" +
 //                "- name: World")
 //        StreamR
-        val generator = Generator(YAMLMapper())
+        val generator = Generator(YAMLMapper(), TemplateErrorListener())
 
         // Act
         generator.generate(inputFilePath)

@@ -1,0 +1,14 @@
+---
+template: term.st
+auto-indent: true
+instances:
+- output: TypeTerm.kt
+  data:
+    properties:
+    - index: 0
+      name: "id"
+      type: "StringTerm"
+    - index: 1
+      name: "extends"
+      type: "OptionTerm<StringTerm>>"
+

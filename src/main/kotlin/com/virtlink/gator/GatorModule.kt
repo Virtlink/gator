@@ -15,15 +15,12 @@ class GatorModule: AbstractModule() {
     }
 
     private fun configureObjectMapper() {
-        // Configure the mapper here
         val mapper = YAMLMapper()
-//        val mapper = ObjectMapper()
-        // Configuration no longer allowed here
-
         bind(ObjectMapper::class.java).toInstance(mapper)
     }
 
     private fun configureGenerator() {
         bind(Generator::class.java).`in`(Singleton::class.java)
+        bind(TemplateErrorListener::class.java).`in`(Singleton::class.java)
     }
 }

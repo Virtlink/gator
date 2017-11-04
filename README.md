@@ -12,6 +12,8 @@ Run it from Gradle by specifying the arguments in the `args` property:
 
     gradle run -Pargs="x.yaml y.yaml z.yaml"
 
+The arguments are the source YAML files with the data.
+
 
 
 
