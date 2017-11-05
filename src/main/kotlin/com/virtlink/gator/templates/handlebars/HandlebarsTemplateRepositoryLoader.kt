@@ -1,10 +1,14 @@
 package com.virtlink.gator.templates.handlebars
 
+import com.github.jknack.handlebars.Context
 import com.github.jknack.handlebars.Handlebars
 import com.github.jknack.handlebars.io.FileTemplateLoader
 import com.github.jknack.handlebars.io.TemplateLoader
 import com.google.inject.Inject
 import com.virtlink.gator.templates.TemplateRepositoryLoader
+import com.github.jknack.handlebars.context.JavaBeanValueResolver
+
+
 
 class HandlebarsTemplateRepositoryLoader @Inject constructor(): TemplateRepositoryLoader {
 
