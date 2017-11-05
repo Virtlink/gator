@@ -13,7 +13,7 @@ class Processor @Inject constructor(
             = generate(inputFilename, null)
 
     fun generate(inputFilename: String, basePath: String?) {
-        val file = File(basePath, inputFilename)
+        val file = File(basePath ?: System.getProperty("user.dir"), inputFilename)
         file.inputStream().use {
             generate(it, basePath ?: file.parent)
         }

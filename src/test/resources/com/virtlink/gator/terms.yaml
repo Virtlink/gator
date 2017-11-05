@@ -3,7 +3,7 @@ template: term
 instances:
 - output: TypeTerm.kt
   data:
-    name: Term
+    name: Type
     properties:
     - index: 0
       name: "id"
