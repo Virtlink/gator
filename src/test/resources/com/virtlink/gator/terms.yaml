@@ -1,6 +1,5 @@
 ---
-template: term.st
-auto-indent: true
+template: term
 instances:
 - output: TypeTerm.kt
   data:

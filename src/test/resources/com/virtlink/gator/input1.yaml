@@ -1,6 +1,5 @@
 ---
-template: template1.st
-auto-indent: true
+template: template1
 instances:
 - output: daniel.txt
   data:

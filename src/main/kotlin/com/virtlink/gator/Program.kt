@@ -23,10 +23,10 @@ fun main(args: Array<String>) = mainBody("gator") {
         }
 
         val injector = configureInjector()
-        val generator = injector.getInstance(Generator::class.java)
+        val processor = injector.getInstance(Processor::class.java)
         for (source in this.sources) {
             LOG.info("Generating $source")
-            generator.generate(source)
+            processor.generate(source)
         }
         LOG.info("Done!")
     }

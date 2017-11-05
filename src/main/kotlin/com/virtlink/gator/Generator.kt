@@ -1,112 +1,96 @@
 package com.virtlink.gator
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.inject.Inject
+import com.google.inject.assistedinject.Assisted
+import com.virtlink.gator.templates.Template
+import com.virtlink.gator.templates.TemplateInstance
+import com.virtlink.gator.templates.TemplateRepository
+import com.virtlink.gator.templates.TemplateRepositoryLoader
 import com.virtlink.logger
-import org.apache.commons.io.FilenameUtils
-import org.stringtemplate.v4.*
-import java.io.*
-import java.net.URI
+import java.io.BufferedWriter
+import java.io.File
+import java.io.Writer
+import java.nio.file.FileSystems
 
 /**
  * Generates files based on a data file and a template.
  */
 class Generator @Inject constructor(
-        private val mapper: ObjectMapper,
-        private val templateErrorListener: TemplateErrorListener
+        @Assisted private val basePath: String,
+        @Assisted private val input: InputData,
+        private val templateRepositoryLoader: TemplateRepositoryLoader
 ) {
 
-    companion object {
-        private const val START_DELIMITER = '$'
-        private const val END_DELIMITER = '$'
+    interface Factory {
+        fun create(basePath: String, input: InputData): Generator
     }
 
     @Suppress("PrivatePropertyName")
     private val LOG by logger()
 
-    fun generate(filename: String) {
-        generate(File(System.getProperty("user.dir"), filename).toURI())
-    }
+    fun generate() {
+        val repository = getTemplateRepository()
+        val template = getTemplate(repository) ?: return
 
-    fun generate(filename: URI) {
-        val file = File(filename)
-        val basePath = FilenameUtils.getFullPath(file.path)
-        val inputStream = file.inputStream()
-        generate(inputStream, basePath)
-    }
-
-    fun generate(inputStream: InputStream, basePath: String) {
-        generate(BufferedReader(InputStreamReader(inputStream)), basePath)
-    }
-
-    fun generate(data: Reader, basePath: String) {
-        val reader = mapper.readerFor(InputData::class.java)
-        val inputData = reader.readValue<InputData>(data)
-
-        generate(inputData, basePath)
-    }
-
-
-    fun generate(input: InputData, basePath: String) {
-        val globalGroup = getTemplateGroup(input, null, basePath)
-
-        for (instance in input.instances) {
-            val group = if (instance.templateGroup != null) getTemplateGroup(input, instance, basePath) else globalGroup
-            val template = getTemplate(input, instance, group)
-            populateTemplate(input, instance, template)
-            getWriter(input, instance, basePath).use {
-                val stWriter = getSTWriter(input, instance, it)
-                template.write(stWriter, templateErrorListener)
+        for (instance in this.input.instances) {
+            val templateInstance = template.createInstance()
+            populateTemplate(instance, templateInstance)
+            getWriter(instance).use {
+                templateInstance.write(it)
             }
         }
     }
 
-    private fun getWriter(input: InputData, instance: InstanceData, basePath: String): Writer {
-        val file = File(basePath, instance.output)
+    /**
+     * Gets the output writer.
+     *
+     * @param instance The instance data, which specifies the output filename.
+     * @return The writer.
+     */
+    private fun getWriter(instance: InstanceData): Writer {
+        val file = File(this.basePath, instance.output)
         return BufferedWriter(file.writer())
     }
 
-    private fun getSTWriter(input: InputData, instance: InstanceData, writer: Writer): STWriter {
-        return when (instance.autoIndent ?: input.autoIndent == true) {
-            true -> AutoIndentWriter(writer)
-            false -> NoIndentWriter(writer)
-        }
-    }
-
-    private fun getTemplateGroup(input: InputData, instance: InstanceData?, basePath: String): STGroup {
-        val templateGroup = instance?.templateGroup
-                ?: input.templateGroup
-                ?: FilenameUtils.getFullPath(input.template)
-        val templateGroupPath = FilenameUtils.concat(basePath, templateGroup)
-        val templateGroupFile = File(templateGroupPath)
-        return when {
-            templateGroupFile.isDirectory -> STGroupDir(templateGroupPath,START_DELIMITER, END_DELIMITER)
-            templateGroupFile.isFile -> STGroupFile(templateGroupPath, START_DELIMITER, END_DELIMITER)
-            else -> throw FileNotFoundException("The template group directory or file was not found.")
-        }
+    /**
+     * Gets the template repository.
+     *
+     * @return The template repository.
+     */
+    private fun getTemplateRepository(): TemplateRepository {
+        val repositoryDir = this.input.repository ?: ""
+        val absoluteRepositoryDir = FileSystems.getDefault()
+                .getPath(this.basePath, repositoryDir)
+                .toAbsolutePath().toString()
+        return this.templateRepositoryLoader.loadFromDirectory(absoluteRepositoryDir)
     }
 
     /**
-     * Gets the template for this input data.
+     * Gets the template from the specified repository.
      *
-     * Returns a cached copy of the template
-     * with all values cleared.
+     * @param repository The template repository.
+     * @return The template; or null when not found.
      */
-    private fun getTemplate(input: InputData, instance: InstanceData, group: STGroup): ST {
-        val templateName = FilenameUtils.getBaseName(instance.template ?: input.template ?: "template")
+    private fun getTemplate(repository: TemplateRepository): Template? {
+        val templateName = this.input.template ?: "template"
+        val template = repository.loadTemplate(templateName)
 
-        return group.getInstanceOf(templateName)
+        if (template == null) {
+            LOG.error("Template with name $templateName not found.")
+            return null
+        }
+        return template
     }
 
     /**
      * Populates the template with the values from the specified instance.
      *
-     * @param template The template to populate.
      * @param instance The template instance data.
+     * @param templateInstance The template instance to populate.
      */
-    private fun populateTemplate(input: InputData, instance: InstanceData, template: ST) {
+    private fun populateTemplate(instance: InstanceData, templateInstance: TemplateInstance) {
         instance.data.forEach { k, v ->
-            template.add(k, v)
+            templateInstance.add(k, v)
         }
     }
 

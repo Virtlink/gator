@@ -26,7 +26,6 @@ repositories {
 dependencies {
     compile     "com.xenomachina:kotlin-argparser:$argparser_version"
     compile     "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
-    compile     "org.antlr:ST4:$st4_version"
     compile     "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
     compile     "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jackson_version"
     compile     "com.google.inject:guice:$guice_version"
@@ -36,6 +35,10 @@ dependencies {
     compile     "org.slf4j:slf4j-api:$slf4j_version"
     compile     "ch.qos.logback:logback-classic:$logback_version"
     compile     "ch.qos.logback:logback-core:$logback_version"
+
+    compile     "org.antlr:ST4:$st4_version"
+//    compile     "org.webjars.bower:handlebars:$handlebars_version"
+    compile     "com.github.jknack:handlebars:$handlebars_version"
 
     testCompile "junit:junit:$junit_version"
 }
