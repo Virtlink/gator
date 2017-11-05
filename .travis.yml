@@ -1,12 +1,23 @@
-
 sudo: false
 jdk:
-  - oraclejdk8
-
+- oraclejdk8
 before_cache:
-  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+- rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+- rm -fr $HOME/.gradle/caches/*/plugin-resolution/
 cache:
   directories:
-    - $HOME/.gradle/caches/
-    - $HOME/.gradle/wrapper/
+  - "$HOME/.gradle/caches/"
+  - "$HOME/.gradle/wrapper/"
+
+before_deploy: ./gradlew distZip
+deploy:
+  provider: releases
+  api_key:
+    secure: oFNfKu+YRK4/Eqn1Z0tAeex7dlwrZgGciQVYvzZyKMD6VQhDf6mrVoBsAUS3J3BkqdXGfgbM8w82rfw4oscbLSd0RLfok7Dylp77qXbRJnebSnqaLbJTkZffelsSJIKNAbKIQaiYbDMh2aq8IW6ncuS6bEeqkfnQWAve3YBMx7e9PEqVcy4IAbGyeHn0W76ek/PliJGmme/2a9w5B4DTSqthbxaFawkyrmuCn2LJMO78lLhGWy7lsG1IdDzdre8zeGuKyb+ouIbJOCiLfveqZUlMp9I/+Tjkwt3NpHRQ8oTiBYnTLc+nIoTlng/6a1uwaFQX1PYKtg7LSAx5N1ysBw+/D1jQu7a/wP5wPDyjy4bJ1nzWM3oYpDXDpuK9Zq6uCVWtIBE2a0sPiSBxhnp9k4PHQxnZWCHWlOc5s0qDYVB+Vadu2DXM0703rMtdIkOwvgmJPeiGa0MKl0zWmwr9qOmPdaWaKzMe4KR3VBJQn2cF57jyPWMQuJAHkI4GXiV+kw4pc+S3YsKADexIYqv5copXKEvJpqtd0dqaG1FWB1WgtvSgxcfC4fxSeTeNanJn3xpb3XWSyazb0QWFi+88xzp+qWRjkC4mAxzmtK/V14Fkk7P9Zjir/Fbw4EB6cf6XxqMqzLpDyHnV+Eb/KF87ar9gwRTpQVZoPByQKrNjAug=
+  file_glob: true
+  file:
+  - build/distributions/*.zip
+  - build/libs/*.jar
+  on:
+    repo: Virtlink/gator
+    tags: true
