@@ -16,7 +16,7 @@ apply plugin: 'kotlin'
 apply plugin: 'application'
 
 group 'com.virtlink'
-version '0.0.1-SNAPSHOT'
+version version
 sourceCompatibility = "$java_version"
 targetCompatibility = "$java_version"
 mainClassName = 'com.virtlink.gator.ProgramKt'
@@ -41,7 +41,6 @@ dependencies {
     compile     "ch.qos.logback:logback-core:$logback_version"
 
     compile     "org.antlr:ST4:$st4_version"
-//    compile     "org.webjars.bower:handlebars:$handlebars_version"
     compile     "com.github.jknack:handlebars:$handlebars_version"
 
     testCompile "junit:junit:$junit_version"
