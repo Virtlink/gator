@@ -62,4 +62,7 @@ run {
 
 release {
     tagTemplate = 'v${version}'
+    preTagCommitMessage = 'Release '
+    tagCommitMessage = 'Release '
+    newVersionCommitMessage = 'Bump to '
 }
