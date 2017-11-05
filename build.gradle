@@ -7,6 +7,10 @@ buildscript {
     }
 }
 
+plugins {
+    id 'net.researchgate.release' version '2.6.0'
+}
+
 apply plugin: 'java'
 apply plugin: 'kotlin'
 apply plugin: 'application'
@@ -55,4 +59,8 @@ run {
     if(project.hasProperty('args')){
         args project.args.split('\\s+')
     }
+}
+
+release {
+    tagTemplate = 'v${version}'
 }
